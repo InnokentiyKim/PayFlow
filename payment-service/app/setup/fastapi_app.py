@@ -8,12 +8,11 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from app.api.routers.common import http_router_v1
-from app.core.config import Configs, create_configs
+from app.core.config import app_config
 from app.core.logger import setup_logging
 from app.setup.middleware import AccessLogMiddleware
+from app.integrations.database import engine
 
-
-app_config: Configs = create_configs()
 
 logger = structlog.get_logger(app_config.logger.app_logger_name)
 
@@ -36,6 +35,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         environment=app_config.general.environment,
     )
     yield
+    await engine.dispose()
     await logger.ainfo(
         "Application shutting down",
         service=app_config.general.service_name,

@@ -1,10 +1,12 @@
 from enum import StrEnum
 from pathlib import Path
+from typing import TypeAlias
 
+from fastapi import Depends
 from pydantic import Field, SecretStr, BaseModel
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+from sqlalchemy.sql.annotation import Annotated
 
 ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
 
@@ -103,3 +105,8 @@ def create_configs() -> Configs:
         Configs: The configuration settings.
     """
     return Configs()
+
+
+ConfigDepends: TypeAlias = Annotated[Configs, Depends(create_configs)]  # type: ignore
+
+app_config: Configs = create_configs()

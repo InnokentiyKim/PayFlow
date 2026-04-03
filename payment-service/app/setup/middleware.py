@@ -4,10 +4,8 @@ import structlog
 from asgi_correlation_id import correlation_id
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.core.config import Configs, create_configs
+from app.core.config import app_config
 
-
-app_config: Configs = create_configs()
 
 logger = structlog.get_logger(app_config.logger.api_logger_name)
 
@@ -39,7 +37,7 @@ class AccessLogMiddleware:
             await send(message)
 
         try:
-            await self.app(scope, receive, send_wrapper) # type: ignore
+            await self.app(scope, receive, send_wrapper)  # type: ignore
         finally:
             duration_ms = round((time.perf_counter() - start) * 1000, 2)
             await logger.ainfo(
