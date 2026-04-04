@@ -1,7 +1,7 @@
 services:
   payment_db:
     image: postgres:16-alpine
-    container_name: payment-db
+    container_name: payment_db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
@@ -88,7 +88,9 @@ services:
     build:
       context: ./payment-service
       dockerfile: Dockerfile
+
     restart: unless-stopped
+
     env_file:
       - ./payment-service/.env
     depends_on:

@@ -1,34 +1,37 @@
 FROM python:3.13-slim AS builder
 
-WORKDIR build/
+WORKDIR web-app/
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 COPY pyproject.toml uv.lock ./
 
-RUN uv venv /build/.venv && \
-    VIRTUAL_ENV=/build/.venv uv sync --frozen --no-dev --no-install-project
+RUN uv venv /web-app/.venv && \
+    VIRTUAL_ENV=/web-app/.venv uv sync --frozen --no-dev --no-install-project
 
 
 FROM python:3.13-slim
 
-WORKDIR app/
+WORKDIR web-app/
 
-COPY --from=builder /build/.venv /app/.venv
+COPY --from=builder web-app/.venv ./.venv
 
 COPY app/ ./app/
 COPY migrations/ ./migrations/
+COPY alembic.ini ./
+COPY entrypoint.sh ./
 
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
-
-USER appuser
-
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH" \
+ENV VIRTUAL_ENV=./.venv \
+    PATH=".venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /web-app && \
+    chmod +x entrypoint.sh
+
+USER appuser
+
 EXPOSE 8000
 
-CMD ["python", "-m", "app.main"]
+CMD ["./entrypoint.sh"]
