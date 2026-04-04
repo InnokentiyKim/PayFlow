@@ -69,8 +69,10 @@ class PaymentService:
                     status=payment.status,
                     is_exists=False,
                 )
-            except exceptions.ItemAlreadyExistsError(message="Payment already exists"): # race condition case
-                await logger.aerror("Payment creation failed", idempotency_key=cmd.idempotency_key)
+            except exceptions.ItemAlreadyExistsError:  # race condition case
+                await logger.aerror(
+                    "Payment creation failed", idempotency_key=cmd.idempotency_key
+                )
                 raise
 
 

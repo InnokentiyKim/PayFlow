@@ -25,7 +25,9 @@ class PaymentDAO:
         return row.scalar_one_or_none()
 
     @staticmethod
-    async def get_payments(session: AsyncSession, filter_by: dict | None = None) -> list[Payment]:
+    async def get_payments(
+        session: AsyncSession, filter_by: dict | None = None
+    ) -> list[Payment]:
         filters = filter_by or {}
         query = select(Payment).filter_by(**filters)
         rows = await session.execute(query)
@@ -38,9 +40,7 @@ class PaymentDAO:
             await session.commit()
             return payment.id
         except IntegrityError as err:
-            raise exceptions.ItemAlreadyExistsError(
-                f"Payment already exists"
-            ) from err
+            raise exceptions.ItemAlreadyExistsError("Payment already exists") from err
 
     @staticmethod
     async def delete_payment(session: AsyncSession, payment: Payment) -> None:
@@ -48,6 +48,4 @@ class PaymentDAO:
         try:
             await session.commit()
         except SQLAlchemyError as err:
-            raise exceptions.DatabaseError(
-                f"Failed to delete payment"
-            ) from err
+            raise exceptions.DatabaseError("Failed to delete payment") from err
