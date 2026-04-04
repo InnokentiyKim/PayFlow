@@ -10,8 +10,10 @@ from contextlib import asynccontextmanager
 from app.api.routers.common import http_router_v1
 from app.core.config import app_config
 from app.core.logger import setup_logging
+from app.setup.exception_handlers import general_exception_handler
 from app.setup.middleware import AccessLogMiddleware
 from app.integrations.database import engine
+from app.common.exceptions import ExceptionBase
 
 
 logger = structlog.get_logger(app_config.logger.app_logger_name)
@@ -62,6 +64,8 @@ def create_fastapi_app() -> FastAPI:
         description="A payment service API built with FastAPI",
         lifespan=lifespan,
     )
+    # Register exception handlers
+    app.add_exception_handler(ExceptionBase, general_exception_handler)
 
     # Middleware Configuration
     app.add_middleware(AccessLogMiddleware)  # type: ignore[arg-type]
