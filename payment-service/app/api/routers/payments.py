@@ -23,6 +23,22 @@ async def get_payment(
     return GetPaymentResponseDTO.model_validate(payment)
 
 
+@router.get("", response_model=list[GetPaymentResponseDTO])
+async def get_payments(
+    service: PaymentServiceDependency,
+) -> list[GetPaymentResponseDTO]:
+    payments = await service.get_payments()
+    return [GetPaymentResponseDTO.model_validate(payment) for payment in payments]
+
+
+@router.post("/{payment_id}/process", response_model=GetPaymentResponseDTO)
+async def process_payment(
+    payment_id: UUID, service: PaymentServiceDependency
+) -> GetPaymentResponseDTO:
+    payment = await service.process_payment(payment_id=payment_id)
+    return GetPaymentResponseDTO.model_validate(payment)
+
+
 @router.post("", response_model=CreatePaymentResponseDTO)
 async def create_payment(
     dto: PaymentCreateRequestDTO, service: PaymentServiceDependency
