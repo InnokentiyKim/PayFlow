@@ -87,11 +87,21 @@ class DatabaseSettings(CustomBaseSettings):
         )
 
 
+class PaymentProviderSettings(CustomBaseSettings):
+    payment_provider_base_url: str = "http://payment-provider:8001"
+    payment_provider_timeout: float = 5.0
+    payment_provider_max_retries: int = 3
+    payment_provider_retry_delay: float = 0.5
+    payment_provider_cb_failure_threshold: int = 5
+    payment_provider_cb_recovery_timeout: float = 30.0
+
+
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     logger: LoggerSettings = Field(default_factory=LoggerSettings)
     broker: BrokerSettings = Field(default_factory=BrokerSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    provider: PaymentProviderSettings = Field(default_factory=PaymentProviderSettings)
 
 
 def create_configs() -> Configs:

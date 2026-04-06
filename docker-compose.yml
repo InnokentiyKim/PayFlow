@@ -105,6 +105,21 @@ services:
     ports:
       - "${APP_PORT:-8000}:8000"
 
+  payment-provider:
+    container_name: payment-provider
+    build:
+      context: ./payment-provider-mock
+      dockerfile: Dockerfile
+
+    restart: unless-stopped
+    depends_on:
+      payment-service:
+        condition: service_started
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+
 
 volumes:
   payment_db_data:
