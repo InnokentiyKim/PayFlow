@@ -1,10 +1,12 @@
 from uuid import UUID
+from datetime import datetime, UTC
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.payments import Payment
 from app.common import exceptions
+from app.common.enums import PaymentStatusEnum
 
 
 class PaymentDAO:
@@ -41,6 +43,31 @@ class PaymentDAO:
             return payment.id
         except IntegrityError as err:
             raise exceptions.ItemAlreadyExistsError("Payment already exists") from err
+
+    @staticmethod
+    async def update_payment_status(
+        session: AsyncSession,
+        payment: Payment,
+        new_status: PaymentStatusEnum,
+        failure_reason: str | None = None,
+    ) -> None:
+        now = datetime.now(UTC)
+        payment.status = new_status
+        payment.updated_at = now
+
+        if new_status == PaymentStatusEnum.COMPLETED:
+            payment.completed_at = now
+        elif new_status == PaymentStatusEnum.FAILED:
+            payment.failed_at = now
+            payment.failure_reason = failure_reason
+
+        try:
+            await session.commit()
+        except SQLAlchemyError as err:
+            await session.rollback()
+            raise exceptions.DatabaseError(
+                "Failed to update payment status",
+            ) from err
 
     @staticmethod
     async def delete_payment(session: AsyncSession, payment: Payment) -> None:
