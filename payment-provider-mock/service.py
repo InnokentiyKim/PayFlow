@@ -15,13 +15,12 @@ logger = structlog.get_logger(__name__)
 
 
 SUCCESS_RATE: float = 0.9
-ERROR_RATE: float = 0.07            # 7 % → HTTP 500
-TIMEOUT_RATE: float = 0.03          # 3 % → simulated timeout
-TIMEOUT_DELAY_MIN: float = 10.0     # seconds
-TIMEOUT_DELAY_MAX: float = 20.0     # seconds
-NORMAL_DELAY_MIN: float = 0.05      # seconds – simulate real network latency
-NORMAL_DELAY_MAX: float = 0.3       # seconds
-
+ERROR_RATE: float = 0.07  # 7 % → HTTP 500
+TIMEOUT_RATE: float = 0.03  # 3 % → simulated timeout
+TIMEOUT_DELAY_MIN: float = 10.0  # seconds
+TIMEOUT_DELAY_MAX: float = 20.0  # seconds
+NORMAL_DELAY_MIN: float = 0.05  # seconds – simulate real network latency
+NORMAL_DELAY_MAX: float = 0.3  # seconds
 
 
 class ProviderPaymentStatus(StrEnum):
