@@ -31,7 +31,7 @@ class ItemNotFoundError(ExceptionBase):
 class DatabaseError(ExceptionBase):
     """Database error."""
 
-    status_code: int = status.HTTP_409_CONFLICT
+    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
     message: str = "Database error."
 
 
