@@ -43,6 +43,10 @@ class BrokerSettings(CustomBaseSettings):
     kafka_acks: int = 1  # Wait for leader to acknowledge
     kafka_retries: int = 3
     kafka_enable_idempotence: bool = True
+    kafka_topic_payment_events: str = "payment-events"
+
+    outbox_relay_poll_interval: float = 2.0  # seconds between outbox polls
+    outbox_relay_batch_size: int = 100  # max events per poll cycle
 
 
 class SqlEngineConfig(BaseModel):
