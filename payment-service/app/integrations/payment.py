@@ -69,7 +69,7 @@ class PaymentProviderClient:
             reset_timeout=cb_recovery_timeout,
         )
 
-        self._do_request = retry( # type: ignore
+        self._do_request = retry(  # type: ignore
             retry=retry_if_exception_type(
                 (
                     PaymentProviderError,
