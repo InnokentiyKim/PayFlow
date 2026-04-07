@@ -59,5 +59,5 @@ class PaymentProviderUnavailableError(ExceptionBase):
 class PaymentProviderClientError(ExceptionBase):
     """Payment provider returned a 4xx client error (not retryable)."""
 
-    status_code: int = status.HTTP_422_UNPROCESSABLE_ENTITY
+    status_code: int = status.HTTP_422_UNPROCESSABLE_CONTENT
     message: str = "Payment provider rejected the request."
