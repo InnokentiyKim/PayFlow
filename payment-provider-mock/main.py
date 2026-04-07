@@ -7,7 +7,12 @@ import structlog
 import uvicorn
 from fastapi import FastAPI, Request, Response
 
-from service import process_payment, ProcessPaymentResponse, ProcessPaymentRequest, ProviderErrorResponse
+from service import (
+    process_payment,
+    ProcessPaymentResponse,
+    ProcessPaymentRequest,
+    ProviderErrorResponse,
+)
 
 
 def setup_logging() -> None:
@@ -46,7 +51,9 @@ app = FastAPI(
 
 
 @app.exception_handler(ProviderErrorResponse)
-async def provider_error_handler(request: Request, exc: ProviderErrorResponse) -> Response:
+async def provider_error_handler(
+    request: Request, exc: ProviderErrorResponse
+) -> Response:
     return Response(
         status_code=exc.status_code,
         content=json.dumps({"detail": exc.detail}),

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class PaymentEvent(BaseModel):
@@ -15,4 +15,3 @@ class PaymentEvent(BaseModel):
     status: str
     timestamp: datetime
     failure_reason: str | None = None
-

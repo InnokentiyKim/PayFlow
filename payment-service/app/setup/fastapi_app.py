@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 import structlog
@@ -6,13 +7,16 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.api.routers.common import http_router_v1
+from app.api.routers.health import router as health_router
 from app.core.config import app_config
 from app.core.logger import setup_logging
 from app.setup.exception_handlers import general_exception_handler
 from app.setup.middleware import AccessLogMiddleware
 from app.integrations.database import engine
+from app.integrations.kafka import OutboxRelay
 from app.common.exceptions import ExceptionBase
 
 
@@ -36,7 +40,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         version=app_config.general.service_version,
         environment=app_config.general.environment,
     )
+
+    session_factory = async_sessionmaker(
+        engine,
+        expire_on_commit=False,
+    )
+    outbox_relay = OutboxRelay(session_factory=session_factory)
+    relay_task = asyncio.create_task(outbox_relay.start())
+
     yield
+
+    await outbox_relay.stop()
+    relay_task.cancel()
+    try:
+        await relay_task
+    except asyncio.CancelledError:
+        pass
+
     await engine.dispose()
     await logger.ainfo(
         "Application shutting down",
@@ -72,6 +92,7 @@ def create_fastapi_app() -> FastAPI:
     app.add_middleware(CorrelationIdMiddleware, validator=_is_valid_uuid)  # type: ignore[arg-type]
 
     # API routing
+    app.include_router(health_router)
     app.include_router(http_router_v1)
 
     return app
