@@ -104,6 +104,12 @@ services:
       - app-network
     ports:
       - "${APP_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   payment-provider:
     container_name: payment-provider
