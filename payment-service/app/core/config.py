@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TypeAlias
 
 from fastapi import Depends
-from pydantic import Field, SecretStr, BaseModel
+from pydantic import Field, SecretStr, BaseModel, field_validator, model_validator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.sql.annotation import Annotated
@@ -39,14 +39,37 @@ class LoggerSettings(CustomBaseSettings):
 
 
 class BrokerSettings(CustomBaseSettings):
-    kafka_bootstrap_servers: str = "localhost:9092"
-    kafka_acks: int = 1  # Wait for leader to acknowledge
+    kafka_bootstrap_servers: str = "payment-kafka:9092"
+    kafka_acks: int | str = 1  # 0, 1, or "all" (-1)
     kafka_retries: int = 3
-    kafka_enable_idempotence: bool = True
+    kafka_enable_idempotence: bool = False
+
+    @field_validator("kafka_acks", mode="before")
+    @classmethod
+    def _normalize_acks(cls, v: object) -> int | str:
+        """Env vars are always strings; convert '0'/'1'/'-1' to int,
+        keep 'all' as-is. aiokafka accepts int(0), int(1) or str('all')."""
+        if isinstance(v, str):
+            if v in ("0", "1", "-1"):
+                return int(v)
+            if v.lower() == "all":
+                return "all"
+            raise ValueError(f"Invalid kafka_acks value: {v!r}. Use 0, 1, -1, or 'all'.")
+        return v
+
     kafka_topic_payment_events: str = "payment-events"
 
+    @model_validator(mode="after")
+    def _check_idempotence_requires_acks_all(self) -> "BrokerSettings":
+        if self.kafka_enable_idempotence and self.kafka_acks != "all":
+            raise ValueError(
+                "kafka_enable_idempotence=True requires kafka_acks='all', "
+                f"got kafka_acks={self.kafka_acks!r}"
+            )
+        return self
+
     outbox_relay_poll_interval: float = 2.0  # seconds between outbox polls
-    outbox_relay_batch_size: int = 100  # max events per poll cycle
+    outbox_relay_batch_size: int = 3  # max events per poll cycle (3 for testing, can be increased in production)
 
 
 class SqlEngineConfig(BaseModel):
