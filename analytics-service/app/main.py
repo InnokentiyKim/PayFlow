@@ -19,7 +19,7 @@ async def _start_app(port: int) -> None:
     await server.serve()
 
 
-def start_app(port: int = 8000) -> None:
+def start_app(port: int = 8002) -> None:
     """Start the FastAPI application on the specified port."""
     asyncio.run(_start_app(port=port))
 
