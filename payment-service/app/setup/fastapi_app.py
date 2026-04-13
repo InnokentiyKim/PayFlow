@@ -48,6 +48,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     outbox_relay = OutboxRelay(session_factory=session_factory)
     relay_task = asyncio.create_task(outbox_relay.start())
 
+    def _relay_task_done(task: asyncio.Task) -> None:
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is not None:
+            logger.error(
+                "Outbox relay task crashed",
+                error=str(exc),
+                error_type=type(exc).__name__,
+            )
+
+    relay_task.add_done_callback(_relay_task_done)
+
     yield
 
     await outbox_relay.stop()

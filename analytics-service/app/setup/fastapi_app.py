@@ -16,7 +16,9 @@ from app.core.logger import setup_logging
 from app.setup.exception_handlers import general_exception_handler
 from app.setup.middleware import AccessLogMiddleware
 from app.integrations.database import engine
+from app.integrations.redis import RedisClient
 from app.common.exceptions import ExceptionBase
+from app.services.cache import CacheService
 from consumer.payment_event_consumer import PaymentEventConsumer
 
 
@@ -46,24 +48,49 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         engine,
         expire_on_commit=app_config.database.session.expire_on_commit,
     )
+
+    # Initialize Redis client and cache service for consumer
+    redis_client = RedisClient(
+        url=app_config.redis.redis_url,
+        socket_timeout=app_config.redis.socket_timeout,
+        socket_connect_timeout=app_config.redis.socket_connect_timeout,
+    )
+    cache_service = CacheService(redis_client=redis_client, config=app_config)
+
+    stop_event = asyncio.Event()
+
     consumer = PaymentEventConsumer(
         config=app_config,
         session_factory=session_factory,
+        cache_service=cache_service,
+        stop_event=stop_event,
     )
     consumer_task = asyncio.create_task(consumer.start())
+
+    # Store references in app.state for health checks
+    app.state.redis_client = redis_client
+    app.state.engine = engine
+    app.state.consumer = consumer
+    app.state.kafka_config = app_config.broker
 
     yield
 
     # Graceful shutdown
-    consumer_task.cancel()
+    await logger.ainfo("Shutdown initiated, signalling consumer to stop...")
+    await consumer.stop()
+
+    await logger.ainfo("Waiting for consumer task to finish current batch...")
     try:
-        await consumer_task
-    except asyncio.CancelledError:
-        pass
+        await asyncio.wait_for(consumer_task, timeout=30.0)
+    except asyncio.TimeoutError:
+        await logger.awarning("Consumer task did not finish in time, cancelling...")
+        consumer_task.cancel()
+
+    await redis_client.close()
 
     await engine.dispose()
     await logger.ainfo(
-        "Application shutting down",
+        "Application shut down gracefully",
         service=app_config.general.service_name,
     )
 
