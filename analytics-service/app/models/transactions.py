@@ -26,16 +26,20 @@ class Transactions(TransactionsBase):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), nullable=False, primary_key=True
     )
-    payment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, unique=True)
+    payment_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False, unique=True
+    )
     amount: Mapped[Decimal] = mapped_column(DECIMAL(15, 4), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     status: Mapped[PaymentStatusEnum] = mapped_column(
-        SAEnum(PaymentStatusEnum), nullable=False,
+        SAEnum(PaymentStatusEnum),
+        nullable=False,
     )
-    event_type: Mapped[str] = mapped_column(String(15), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(255), nullable=False)
 
     processed_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False,
+        TIMESTAMP(timezone=True),
+        nullable=False,
     )
 
     def __init__(
