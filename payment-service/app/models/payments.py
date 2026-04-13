@@ -92,3 +92,8 @@ class Payment(PaymentBase):
     def is_pending(self) -> bool:
         """Check if the payment is pending."""
         return self.status == PaymentStatusEnum.PENDING
+
+    def set_status(self, status: PaymentStatusEnum) -> None:
+        """Update the payment status and corresponding timestamps."""
+        self.status = status
+        self.updated_at = datetime.now(UTC)

@@ -4,6 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from app.common.enums import PaymentStatusEnum
+from app.models.outbox_events import OutboxEvent
 from app.models.payments import Payment
 
 
@@ -39,3 +40,21 @@ class CreatePaymentResult:
     status: PaymentStatusEnum
     idempotency_key: str
     is_exists: bool
+
+@dataclass(slots=True, frozen=True)
+class GetOutboxEventResult:
+    id: uuid.UUID
+    event_type: str
+    payload: dict
+    created_at: datetime
+    published: bool
+
+    @classmethod
+    def from_model(cls, event: "OutboxEvent") -> "GetOutboxEventResult":
+        return cls(
+            id=event.id,
+            event_type=event.event_type,
+            payload=event.payload,
+            created_at=event.created_at,
+            published=event.published,
+        )

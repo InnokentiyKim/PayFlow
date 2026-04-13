@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from app.common.dto import BaseResponseDTO
 from app.common.enums import PaymentStatusEnum
-from app.schemas.result import CreatePaymentResult
+from app.schemas.result import CreatePaymentResult, GetOutboxEventResult
 
 
 class GetPaymentResponseDTO(BaseResponseDTO):
@@ -31,4 +31,22 @@ class CreatePaymentResponseDTO(BaseResponseDTO):
             created_at=model.created_at,
             status=model.status,
             idempotency_key=model.idempotency_key,
+        )
+
+
+class GetOutboxEventResponseDTO(BaseResponseDTO):
+    id: uuid.UUID
+    event_type: str
+    payload: dict
+    created_at: datetime
+    published: bool
+
+    @classmethod
+    def from_model(cls, model: "GetOutboxEventResult") -> "GetOutboxEventResponseDTO":
+        return cls(
+            id=model.id,
+            event_type=model.event_type,
+            payload=model.payload,
+            created_at=model.created_at,
+            published=model.published,
         )
