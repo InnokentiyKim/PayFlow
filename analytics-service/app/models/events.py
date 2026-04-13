@@ -26,9 +26,10 @@ class ProcessedEvents(ProcessedEventsBase):
 
     def __init__(
         self,
+        event_id: uuid.UUID,
         processed_at: datetime | None = None,
     ):
-        self.id = uuid.uuid4()
+        self.event_id = event_id
         self.processed_at = processed_at or datetime.now(UTC)
 
         super().__init__()
