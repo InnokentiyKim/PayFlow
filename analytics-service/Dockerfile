@@ -17,6 +17,7 @@ WORKDIR web-app/
 COPY --from=builder web-app/.venv ./.venv
 
 COPY app/ ./app/
+COPY consumer/ ./consumer/
 COPY migrations/ ./migrations/
 COPY alembic.ini ./
 COPY entrypoint.sh ./
