@@ -53,6 +53,11 @@ class PaymentService:
 
         return [result.GetPaymentResult.from_model(payment) for payment in payments]
 
+    async def get_outbox_events(self) -> list[result.GetOutboxEventResult]:
+        outbox_events = await self._dao.get_outbox_events(self._session)
+
+        return [result.GetOutboxEventResult.from_model(outbox_event) for outbox_event in outbox_events]
+
     async def create_payment(
         self, cmd: CreatePaymentCommand
     ) -> result.CreatePaymentResult:
@@ -129,9 +134,7 @@ class PaymentService:
             )
 
             await self._dao.update_payment_status(
-                self._session,
-                payment,
-                PaymentStatusEnum.COMPLETED,
+                self._session, payment, PaymentStatusEnum.COMPLETED
             )
 
         except (
@@ -145,11 +148,8 @@ class PaymentService:
                 error=str(exc),
                 error_type=type(exc).__name__,
             )
-
             await self._dao.update_payment_status(
-                self._session,
-                payment,
-                PaymentStatusEnum.FAILED,
+                self._session, payment, PaymentStatusEnum.FAILED,
                 failure_reason=str(exc),
             )
 

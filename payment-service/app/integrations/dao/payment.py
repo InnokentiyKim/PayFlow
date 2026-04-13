@@ -38,6 +38,12 @@ class PaymentDAO:
         return list(rows.scalars())
 
     @staticmethod
+    async def get_outbox_events(session: AsyncSession) -> list[OutboxEvent]:
+        query = select(OutboxEvent)
+        rows = await session.execute(query)
+        return list(rows.scalars())
+
+    @staticmethod
     async def add_payment(session: AsyncSession, payment: Payment) -> UUID:
         session.add(payment)
         try:

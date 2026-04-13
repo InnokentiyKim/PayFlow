@@ -101,6 +101,14 @@ class OutboxRelay:
                 return 0
 
             for event in events:
+                await logger.ainfo(
+                    "Publishing outbox event to Kafka",
+                    event_id=str(event.id),
+                    event_type=event.event_type,
+                    topic=self._topic,
+                    payment_id=event.payload.get("payment_id"),
+                )
+
                 try:
                     payload_bytes = json.dumps(event.payload).encode("utf-8")
                     key_bytes = str(
